@@ -1,7 +1,11 @@
-import java.util.Objects;
+import java.util.*;
 
 public class GraphAlgorithms {
-  
+
+  /**
+   * Die Main Methode zur Erzeugung des Graphens und zur Ausfuehrung der Methoden
+   * @param args Argumente der Main Methode
+   */
   public static void main(String[] args) {
     Graph graph = new Graph();
     graph.addVertex(new Vertex("1"));
@@ -19,78 +23,14 @@ public class GraphAlgorithms {
     matrix(graph);
     System.out.println("-----Prim-Algorithm-----");
     matrix(prims(graph));
-    //System.out.println("-----MST-----");
-    //mst(graph);
+    System.out.println("---Kruskals-Algorithm---");
+    matrix(kruskal(graph));
   }
 
-  public static Graph prims(Graph graph) {
-    List<Edge> mstEd = new List<>();
-    graph.setAllVertexMarks(false);
-    graph.setAllEdgeMarks(false);
-    List<Vertex> vertices = graph.getVertices();
-    vertices.toFirst();
-    Vertex start = vertices.getContent();
-    start.setMark(true);
-    List<Edge> edgeList = new List<>();
-      while (!graph.allVerticesMarked()) {
-      List<Edge> newEdges = graph.getEdges(start);
-      newEdges.toFirst();
-      while (newEdges.hasAccess()) {
-        if (!newEdges.getContent().isMarked() &&
-                !(newEdges.getContent().getVertices()[0].isMarked() && newEdges.getContent().getVertices()[1].isMarked())) {
-          edgeList.append(newEdges.getContent());
-        }
-        newEdges.next();
-      }
-      edgeList.toFirst();
-        Edge minEdge = edgeList.getContent();
-        edgeList.next();
-        while (edgeList.hasAccess()) {
-          if (edgeList.getContent().getWeight() < minEdge.getWeight() && !(minEdge.getVertices()[0].isMarked() && minEdge.getVertices()[1].isMarked())) {
-            minEdge = edgeList.getContent();
-          }
-          edgeList.next();
-        }
-        if (!(minEdge.getVertices()[0].isMarked() && minEdge.getVertices()[1].isMarked())){
-          mstEd.append(minEdge);
-        }
-        minEdge.setMark(true);
-        edgeList.toFirst();
-        while (edgeList.hasAccess()) {
-          if (edgeList.getContent().isMarked()) {
-            edgeList.remove();
-          }
-          edgeList.next();
-        }
-        minEdge.getVertices()[0].setMark(true);
-        minEdge.getVertices()[1].setMark(true);
-        edgeList.toFirst();
-        vertices.toFirst();
-        boolean end = false;
-        while (vertices.hasAccess() && !end) {
-          if (!vertices.getContent().isMarked()) {
-            start = vertices.getContent();
-            end = true;
-          }
-          vertices.next();
-        }
-
-    }
-      Graph mst = new Graph();
-      List<Vertex> orgVert = graph.getVertices();
-      orgVert.toFirst();
-      while (orgVert.hasAccess()) {
-        mst.addVertex(orgVert.getContent());
-        orgVert.next();
-      }
-      mstEd.toFirst();
-      while (mstEd.hasAccess()) {
-        mst.addEdge(mstEd.getContent());
-        mstEd.next();
-      }
-      return mst;
-  }
-
+  /**
+   * Die Methode erzeugt eine Adjazenzliste und gibt diese aus
+   * @param graph Der Graph von dem die Adjazenzliste erstellt werden soll
+   */
   public static void list(Graph graph) {
     List<Vertex> vertices = graph.getVertices();
     vertices.toFirst();
@@ -114,7 +54,6 @@ public class GraphAlgorithms {
       vertices.next();
     }
 
-    //Printing List
     adjacenceList.toFirst();
     while (adjacenceList.hasAccess()) {
       adjacenceList.getContent().toFirst();
@@ -127,6 +66,10 @@ public class GraphAlgorithms {
     }
   }
 
+  /**
+   * Die Methode erzeugt eine Adjazenzmatrix und gibt diese aus
+   * @param graph Der Graph von dem die Adjazenzmatrix erstellt werden soll
+   */
   public static void matrix(Graph graph) {
     List<Vertex> vertices = graph.getVertices();
     int length = 0;
@@ -134,7 +77,7 @@ public class GraphAlgorithms {
     while (vertices.hasAccess()) {
       length++;
       vertices.next();
-    } // end of while
+    }
     String[][] matrix = new String[length+1][length+1];
     matrix[0][0] = " | ";
     vertices.toFirst();
@@ -173,7 +116,6 @@ public class GraphAlgorithms {
       vertices.next();
     }
 
-    //Print Matrix
     for (String[] x : matrix)
     {
      for (String y : x)
@@ -184,34 +126,168 @@ public class GraphAlgorithms {
      }
   }
 
-  public static void mst(Graph graph) {
-    Graph mst = new Graph();
+  /**
+   * Die Methode ermittelt den minimalen Spannbaum mithilfe des Algorithmus von Prim
+   * @param graph Der Graph von dem der MST ermittelt werden soll
+   * @return Gibt den minimalen Spannbaum zurueck
+   */
+  public static Graph prims(Graph graph) {
+    List<Edge> mstEd = new List<>();
+    graph.setAllVertexMarks(false);
+    graph.setAllEdgeMarks(false);
     List<Vertex> vertices = graph.getVertices();
     vertices.toFirst();
+    Vertex start = vertices.getContent();
+    start.setMark(true);
+    List<Edge> edgeList = new List<>();
+    while (!graph.allVerticesMarked()) {
+      List<Edge> newEdges = graph.getEdges(start);
+      newEdges.toFirst();
+      while (newEdges.hasAccess()) {
+        if (!newEdges.getContent().isMarked() &&
+                !(newEdges.getContent().getVertices()[0].isMarked() && newEdges.getContent().getVertices()[1].isMarked())) {
+          edgeList.append(newEdges.getContent());
+        }
+        newEdges.next();
+      }
+      edgeList.toFirst();
+      Edge minEdge = edgeList.getContent();
+      edgeList.next();
+      while (edgeList.hasAccess()) {
+        if (edgeList.getContent().getWeight() < minEdge.getWeight() && !(minEdge.getVertices()[0].isMarked() && minEdge.getVertices()[1].isMarked())) {
+          minEdge = edgeList.getContent();
+        }
+        edgeList.next();
+      }
+      if (!(minEdge.getVertices()[0].isMarked() && minEdge.getVertices()[1].isMarked())){
+        mstEd.append(minEdge);
+      }
+      minEdge.setMark(true);
+      edgeList.toFirst();
+      while (edgeList.hasAccess()) {
+        if (edgeList.getContent().isMarked()) {
+          edgeList.remove();
+        }
+        edgeList.next();
+      }
+      minEdge.getVertices()[0].setMark(true);
+      minEdge.getVertices()[1].setMark(true);
+      edgeList.toFirst();
+      vertices.toFirst();
+      boolean end = false;
+      while (vertices.hasAccess() && !end) {
+        if (!vertices.getContent().isMarked()) {
+          start = vertices.getContent();
+          end = true;
+        }
+        vertices.next();
+      }
 
+    }
+    Graph mst = new Graph();
+    List<Vertex> orgVert = graph.getVertices();
+    orgVert.toFirst();
+    while (orgVert.hasAccess()) {
+      mst.addVertex(orgVert.getContent());
+      orgVert.next();
+    }
+    mstEd.toFirst();
+    while (mstEd.hasAccess()) {
+      mst.addEdge(mstEd.getContent());
+      mstEd.next();
+    }
+    return mst;
+  }
+
+  /**
+   * Die Methode ermittelt den minimalen Spannbaum mithilfe des Algorithmus von Kruskal
+   * @param graph Der Graph von dem der MST ermittelt werden soll
+   * @return Gibt den minimalen Spannbaum zurueck
+   */
+  public static Graph kruskal(Graph graph) {
+    Graph mst = new Graph();
+    List<Edge> edges = graph.getEdges();
+    List<Vertex> vertices = graph.getVertices();
+    vertices.toFirst();
     while (vertices.hasAccess()) {
       mst.addVertex(vertices.getContent());
       vertices.next();
     }
-
-    vertices.toFirst();
-
-    while (vertices.hasAccess()) {
-      List<Edge> edges = graph.getEdges(vertices.getContent());
-      edges.toFirst();
-      Edge mE = new Edge(new Vertex(""),new Vertex(""),Integer.MAX_VALUE);
-      while (edges.hasAccess()) {
-        if (edges.getContent().getWeight() < mE.getWeight()) {
-          mE = edges.getContent();
-        }
-        edges.next();
-      }
-      mst.addEdge(mE);
-      vertices.next();
+    edges.toFirst();
+    int length = 0;
+    while (edges.hasAccess()) {
+      length++;
+      edges.next();
     }
-
-    matrix(mst);
-    list(mst);
+    Edge[] edgeArr = new Edge[length];
+    edges.toFirst();
+    for (int i = 0; i < length; i++) {
+      edgeArr[i] = edges.getContent();
+      edges.next();
+    }
+    quickSort(edgeArr,0,edgeArr.length-1);
+    graph.setAllVertexMarks(false);
+    for (int i = 0; i < length; i++) {
+      if (!(edgeArr[i].getVertices()[0].isMarked() && edgeArr[i].getVertices()[1].isMarked())) {
+        mst.addEdge(edgeArr[i]);
+        edgeArr[i].getVertices()[0].setMark(true);
+        edgeArr[i].getVertices()[1].setMark(true);
+      }
+    }
+    return mst;
   }
 
+  /**
+   * Die Methode tauscht zwei Elemente in einem Array
+   * @param arr Das Array in welchem die Elemente getauscht werden sollen
+   * @param i Position des ersten zu tauschenden Elements
+   * @param j Position des zweiten zu tauschenden Elements
+   */
+  static void swap(Edge[] arr, int i, int j)
+  {
+    Edge temp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = temp;
+  }
+
+  /**
+   * Die Methode nimmt das letzte Element als pivot und positioniert das Pivot an die richtige Position.
+   * Alle kleineren Elemente werden dann links vom pivot und alle groesseren Elemente nach rechts
+   * @param arr Array welches sortiert werden soll
+   * @param low Untere Grenze des zu sortierenden Arrays
+   * @param high Obere Grenze des zu sortierenden Arrays
+   * @return Gibt die Position des Pivots zurueck
+   */
+  static int partition(Edge[] arr, int low, int high)
+  {
+    double pivot = arr[high].getWeight();
+
+    int i = (low - 1);
+
+    for (int j = low; j <= high - 1; j++) {
+
+      if (arr[j].getWeight() < pivot) {
+
+        i++;
+        swap(arr, i, j);
+      }
+    }
+    swap(arr, i + 1, high);
+    return (i + 1);
+  }
+
+  /** Methode die ein Array mithilfe des Quicksorts sortiert
+   * @param arr Array welches sortiert wird
+   * @param low Untere Grenze des zu sortierenden Arrays
+   * @param high Obere Grenze des zu sortierenden Arrays
+   */
+  static void quickSort(Edge[] arr, int low, int high)
+  {
+    if (low < high) {
+      int pi = partition(arr, low, high);
+
+      quickSort(arr, low, pi - 1);
+      quickSort(arr, pi + 1, high);
+    }
+  }
 }
