@@ -17,6 +17,7 @@ public class GraphAlgorithms {
     graph.addEdge(new Edge(graph.getVertex("2"),graph.getVertex("1"),5.6));
     graph.addEdge(new Edge(graph.getVertex("3"),graph.getVertex("6"),10.9));
     graph.addEdge(new Edge(graph.getVertex("1"),graph.getVertex("6"),42.0));
+
     System.out.println("----------List----------");
     list(graph);
     System.out.println("---------Matrix---------");
@@ -45,8 +46,8 @@ public class GraphAlgorithms {
       ed.toFirst();
       neighbours.toFirst();
       while (neighbours.hasAccess()) {
-        nb.insert(new String[]{vertices.getContent().getID() + "", ""});
-        nb.append(new String[]{neighbours.getContent().getID() + "", new String(ed.getContent().getWeight() + "")});
+        nb.insert(new String[]{vertices.getContent().getID(), ""});
+        nb.append(new String[]{neighbours.getContent().getID(), ed.getContent().getWeight() + ""});
         neighbours.next();
         ed.next();
       }
@@ -226,16 +227,46 @@ public class GraphAlgorithms {
       edges.next();
     }
     quickSort(edgeArr,0,edgeArr.length-1);
-    graph.setAllVertexMarks(false);
+    mst.setAllVertexMarks(false);
     for (int i = 0; i < length; i++) {
-      if (!(edgeArr[i].getVertices()[0].isMarked() && edgeArr[i].getVertices()[1].isMarked())) {
-        mst.addEdge(edgeArr[i]);
-        edgeArr[i].getVertices()[0].setMark(true);
-        edgeArr[i].getVertices()[1].setMark(true);
+      mst.addEdge(edgeArr[i]);
+      mst.setAllVertexMarks(false);
+      if (hasCycle(mst,edgeArr[i].getVertices()[0], null)) {
+        mst.removeEdge(edgeArr[i]);
+      }
+      mst.setAllVertexMarks(false);
+      if (hasCycle(mst,edgeArr[i].getVertices()[1], null)) {
+        mst.removeEdge(edgeArr[i]);
       }
     }
     return mst;
   }
+
+  /**
+   * Die Methode uebrprueft, ob in dem uebergebenen Graphen eine Schleife existiert
+   * @param graph Der Graph der ueberprueft wird
+   * @param source Der Knoten von dem die Suche beginnt
+   * @param parent Der Elternknoten des aktuellen Knotens
+   * @return true, wenn eine Schleife gefunden wurde. Andernfalls false
+   */
+  public static boolean hasCycle(Graph graph, Vertex source, Vertex parent) {
+    source.setMark(true);
+    List<Vertex> neighbours = graph.getNeighbours(source);
+    neighbours.toFirst();
+    while (neighbours.hasAccess()) {
+      Vertex neighbour = neighbours.getContent();
+      if (!neighbour.isMarked()) {
+        if (hasCycle(graph, neighbour, source)) {
+          return true;
+        }
+      } else if (!neighbour.equals(parent)) {
+        return true;
+      }
+      neighbours.next();
+    }
+    return false;
+  }
+
 
   /**
    * Die Methode tauscht zwei Elemente in einem Array
@@ -243,7 +274,7 @@ public class GraphAlgorithms {
    * @param i Position des ersten zu tauschenden Elements
    * @param j Position des zweiten zu tauschenden Elements
    */
-  static void swap(Edge[] arr, int i, int j)
+  private static void swap(Edge[] arr, int i, int j)
   {
     Edge temp = arr[i];
     arr[i] = arr[j];
@@ -258,7 +289,7 @@ public class GraphAlgorithms {
    * @param high Obere Grenze des zu sortierenden Arrays
    * @return Gibt die Position des Pivots zurueck
    */
-  static int partition(Edge[] arr, int low, int high)
+  private static int partition(Edge[] arr, int low, int high)
   {
     double pivot = arr[high].getWeight();
 
@@ -281,7 +312,7 @@ public class GraphAlgorithms {
    * @param low Untere Grenze des zu sortierenden Arrays
    * @param high Obere Grenze des zu sortierenden Arrays
    */
-  static void quickSort(Edge[] arr, int low, int high)
+  private static void quickSort(Edge[] arr, int low, int high)
   {
     if (low < high) {
       int pi = partition(arr, low, high);
