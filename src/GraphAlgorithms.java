@@ -183,7 +183,6 @@ public class GraphAlgorithms {
         }
         vertices.next();
       }
-
     }
     Graph mst = new Graph();
     List<Vertex> orgVert = graph.getVertices();
