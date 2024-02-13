@@ -12,7 +12,7 @@ public class GraphAlgorithms {
     graph.addVertex(new Vertex("2"));
     graph.addVertex(new Vertex("3"));
     graph.addVertex(new Vertex("6"));
-    graph.addEdge(new Edge(graph.getVertex("1"),graph.getVertex("3"),2.0));
+    graph.addEdge(new Edge(graph.getVertex("1"),graph.getVertex("3"),5.5));
     graph.addEdge(new Edge(graph.getVertex("3"),graph.getVertex("2"),3.4));
     graph.addEdge(new Edge(graph.getVertex("2"),graph.getVertex("1"),5.6));
     graph.addEdge(new Edge(graph.getVertex("3"),graph.getVertex("6"),10.9));
@@ -26,6 +26,21 @@ public class GraphAlgorithms {
     matrix(prims(graph));
     System.out.println("---Kruskals-Algorithm---");
     matrix(kruskal(graph));
+
+    System.out.println("---Dijkstra-Algorithm---");
+    List<Vertex> dijkstra = dijkstra(graph,new Vertex("1"),new Vertex("6"));
+    System.out.println("From Vertex to Vertex");
+    if (dijkstra != null) {
+      dijkstra.toFirst();
+      System.out.print(dijkstra.getContent().getID());
+      dijkstra.next();
+      while (dijkstra.hasAccess()) {
+        System.out.print(" -> " + dijkstra.getContent().getID());
+        dijkstra.next();
+      }
+    } else {
+      System.out.println("No Path");
+    }
   }
 
   /**
@@ -319,5 +334,149 @@ public class GraphAlgorithms {
       quickSort(arr, low, pi - 1);
       quickSort(arr, pi + 1, high);
     }
+  }
+
+  /**
+   * Ermittelt den kuerzesten Weg zwischen den Knoten source und target mithilfe des Dijkstra Algorithmus und gibt die Liste der abzulaufenen Knoten zurueck
+   * @param graph Der Graph in dem der Weg gefunden werden soll
+   * @param source Der Ausgangsknoten
+   * @param target Der Zielknoten
+   * @return Eine Liste mit den Knoten die abgelaufen werden muessen, um den Zielknoten vom Startknoten zu erreichen
+   */
+  public static List<Vertex> dijkstra(
+          final Graph graph, final Vertex source, final Vertex target) {
+    graph.setAllVertexMarks(false);
+    List<Vertex> vertexList = graph.getVertices();
+    vertexList.toFirst();
+    Vertex startVertex = vertexList.getContent();
+    if (startVertex == null) {
+      return null;
+    }
+    int numberOfVertices = getNumberOfVertices(graph);
+    double[] distances = new double[numberOfVertices];
+    Vertex[] predecessors = new Vertex[numberOfVertices];
+    for (int i = 0; i < numberOfVertices; i++) {
+      distances[i] = Double.MAX_VALUE;
+      predecessors[i] = null;
+    }
+    distances[getIndexOfVertex(graph.getVertices(), source)] = 0;
+    while (!graph.allVerticesMarked()) {
+      Vertex currentVertex = getVertexWithSmallestDistance(graph, distances);
+      if (currentVertex == null) {
+        return null;
+      }
+      currentVertex.setMark(true);
+      int currentVertexIndex = getIndexOfVertex(
+              graph.getVertices(), currentVertex);
+      List<Vertex> neighbors = graph.getNeighbours(currentVertex);
+      neighbors.toFirst();
+      while (neighbors.hasAccess()) {
+        Vertex neighbor = neighbors.getContent();
+        if (!neighbor.isMarked()) {
+          int neighborIndex = getIndexOfVertex(graph.getVertices(), neighbor);
+          double distance = distances[currentVertexIndex]
+                  + graph.getEdge(currentVertex, neighbor).getWeight();
+          if (distance < distances[neighborIndex]) {
+            distances[neighborIndex] = distance;
+            predecessors[neighborIndex] = currentVertex;
+          }
+        }
+        neighbors.next();
+      }
+    }
+    return getShortestPath(predecessors, target, graph.getVertices());
+  }
+
+  /**
+   * Ermittelt den Pfad zum Ziel
+   * @param predecessors Das Array der Vorgaengerknoten zu dem dazugehoerigen Knoten
+   * @param target Zielknoten
+   * @param allVertices Alle Knoten zur Referenz der Vorgaengerknoten
+   * @return Liste der Knoten in der Reihenfolge in der sie gegangen werden muessen um den kuerzesten Weg zu gehen
+   */
+  private static List<Vertex> getShortestPath(
+          final Vertex[] predecessors, final Vertex target, final List<Vertex> allVertices) {
+    List<Vertex> reversedShortestPath = new List<>();
+    Vertex currentVertex = target;
+
+    while (currentVertex != null) {
+      reversedShortestPath.append(currentVertex);
+      int index = getIndexOfVertex(allVertices, currentVertex);
+      if (index == -1) {
+        return null;
+      }
+      currentVertex = predecessors[index];
+    }
+    List<Vertex> shortestPath = new List<>();
+    reversedShortestPath.toLast();
+    while (reversedShortestPath.hasAccess()) {
+      shortestPath.append(reversedShortestPath.getContent());
+      reversedShortestPath.remove();
+      reversedShortestPath.toLast();
+    }
+    return shortestPath;
+  }
+
+  /**
+   * Eine Hilfsmethode zur Bestimmung der Anzahl der Knoten eines Graphen
+   * @param graph Der Graph von dem die Knoten gez
+   * @return Anzahl der Knoten
+   */
+  private static int getNumberOfVertices(final Graph graph) {
+    List<Vertex> vertices = graph.getVertices();
+    vertices.toFirst();
+    int numberOfVertices = 0;
+    while (vertices.hasAccess()) {
+      numberOfVertices++;
+      vertices.next();
+    }
+    return numberOfVertices;
+  }
+
+  /**
+   * Eine Hilfsmethode zur Bestimmung der Position eines Vertex in einer Liste
+   * @param vertices Die Liste der Knoten
+   * @param vertex Der Knoten der gefunden werden soll
+   * @return Position des Knotens in der Liste
+   */
+  private static int getIndexOfVertex(
+          final List<Vertex> vertices, final Vertex vertex) {
+    vertices.toFirst();
+    int index = 0;
+    while (vertices.hasAccess()) {
+      if (vertices.getContent().getID().equals(vertex.getID())) {
+        return index;
+      }
+      index++;
+      vertices.next();
+    }
+    return -1;
+  }
+
+  /**
+   * Methode zur Ermittlung des Knotens mit der kleinsten Entfernungssumme
+   * @param graph Graph von dem die kleinste Entfernungssumme gefunden werden soll
+   * @param distances Bisherige Entfernungen zur Beruecksictigung
+   * @return Knoten der kleinsten Entfernungssumme
+   */
+  private static Vertex getVertexWithSmallestDistance(
+          final Graph graph, final double[] distances) {
+    List<Vertex> vertices = graph.getVertices();
+    vertices.toFirst();
+    Vertex vertexWithSmallestDistance = null;
+    double smallestDistance = Double.MAX_VALUE;
+    while (vertices.hasAccess()) {
+      Vertex currentVertex = vertices.getContent();
+      if (!currentVertex.isMarked()) {
+        double distance = distances[getIndexOfVertex(
+                graph.getVertices(), currentVertex)];
+        if (distance < smallestDistance) {
+          smallestDistance = distance;
+          vertexWithSmallestDistance = currentVertex;
+        }
+      }
+      vertices.next();
+    }
+    return vertexWithSmallestDistance;
   }
 }
