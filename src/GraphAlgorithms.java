@@ -41,6 +41,11 @@ public class GraphAlgorithms {
     } else {
       System.out.println("No Path");
     }
+    System.out.println();
+	System.out.println("----Breadth-Traverse----");
+	System.out.println(breadthTraverse(graph,new Vertex("2"),true));
+	System.out.println("-----Depth-Traverse-----");
+	System.out.println(depthTraverse(graph,new Vertex("6"),true));
   }
 
   /**
@@ -478,5 +483,91 @@ public class GraphAlgorithms {
       vertices.next();
     }
     return vertexWithSmallestDistance;
+  }
+  
+  /**
+  * Die Methode breadthTraverse sucht in dem Baum nach dem Knoten vertex mithilfe der Breitentraversierung
+  * @param graph Der Graph in dem der Knoten gesucht werden soll
+  * @param pVertex Der Knoten der gesucht werden soll
+  * @return true, wenn der Knoten gefunden wurde. Sonst false
+  */
+    public static boolean breadthTraverse(final Graph graph, final Vertex pVertex, final boolean fullTraverse) {
+    graph.setAllVertexMarks(false);
+    boolean found = false;
+	List<Vertex> vertexList = graph.getVertices();
+    vertexList.toFirst();
+    Vertex startVertex = vertexList.getContent();
+    if (startVertex == null) {
+      return false;
+    }
+    Queue<Vertex> verticesToVisit = new Queue<>();
+    startVertex.setMark(true);
+    verticesToVisit.enqueue(startVertex);
+    while (!verticesToVisit.isEmpty()) {
+      Vertex currentVertex = verticesToVisit.front();
+      verticesToVisit.dequeue();
+	  System.out.println(currentVertex.getID());
+      if (currentVertex.getID().equals(pVertex.getID())) {
+        if (!fullTraverse) {
+          return true;
+        } else {
+          found = true;
+        }
+      }
+      List<Vertex> neighbors = graph.getNeighbours(currentVertex);
+      neighbors.toFirst();
+      while (neighbors.hasAccess()) {
+        Vertex neighbor = neighbors.getContent();
+        if (!neighbor.isMarked()) {
+          neighbor.setMark(true);
+          verticesToVisit.enqueue(neighbor);
+        }
+        neighbors.next();
+      }
+    }
+    return found;
+  }
+  
+  /** 
+  * Die Methode depthTraverse sucht in dem Baum nach dem Knoten pVertex mithilfe der Tiefentraversierung
+  * @param graph Der graph in dem der Knoten gesucht werden soll
+  * @param pVertex Der Knoten der gesucht werden soll
+  * @return true, wenn der Knoten gefunden wurde. Sonst false
+  */
+    public static boolean depthTraverse(final Graph graph, final Vertex pVertex, final boolean fullTraverse) {
+    graph.setAllVertexMarks(false);
+    boolean found = false;
+	List<Vertex> vertexList = graph.getVertices();
+    vertexList.toFirst();
+    Vertex startVertex = vertexList.getContent();
+    if (startVertex == null) {
+      return false;
+    }
+    Stack<Vertex> verticesToVisit = new Stack<>();
+    startVertex.setMark(true);
+    verticesToVisit.push(startVertex);
+    while (!verticesToVisit.isEmpty()) {
+      Vertex currentVertex = verticesToVisit.top();
+	  System.out.println(currentVertex.getID());
+      verticesToVisit.pop();
+      if (currentVertex.getID().equals(pVertex.getID())) {
+        if (!fullTraverse) {
+          return true;
+        } else {
+          found = true;
+        }
+      }
+      List<Vertex> neighbors = graph.getNeighbours(currentVertex);
+      neighbors.toFirst();
+      while (neighbors.hasAccess()) {
+        Vertex neighbor = neighbors.getContent();
+        if (!neighbor.isMarked()) {
+          neighbor.setMark(true);
+          verticesToVisit.push(neighbor);
+        }
+        neighbors.next();
+      }
+    }
+    return found;
   }
 }
